@@ -13,7 +13,7 @@ import com.example.costum_notification.R
 
 class CustomNotificationService : Service() {
     private lateinit var windowManager: WindowManager
-    private lateinit var notificationView: View
+    private var notificationView: View? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -26,6 +26,11 @@ class CustomNotificationService : Service() {
     }
 
     private fun showNotification() {
+        if (notificationView != null) {
+            // Notification already showing, don't create a new one
+            return
+        }
+
         val inflater = getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
         notificationView = inflater.inflate(R.layout.custom_notification_layout, null)
 
@@ -41,20 +46,36 @@ class CustomNotificationService : Service() {
         params.x = 0
         params.y = 100
 
-        notificationView.setOnClickListener {
-            windowManager.removeView(notificationView)
-            stopSelf()
+        notificationView?.setOnClickListener {
+            removeNotification()
         }
 
-        windowManager.addView(notificationView, params)
+        try {
+            windowManager.addView(notificationView, params)
+        } catch (e: Exception) {
+            // Handle exception (e.g., permission not granted)
+            removeNotification()
+        }
+    }
+
+    private fun removeNotification() {
+        notificationView?.let {
+            try {
+                windowManager.removeView(it)
+            } catch (e: IllegalArgumentException) {
+                // View not attached, ignore
+            }
+            notificationView = null
+        }
+        stopSelf()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
         super.onDestroy()
-        if (::notificationView.isInitialized) {
-            windowManager.removeView(notificationView)
-        }
+        removeNotification()
     }
 }
+
+

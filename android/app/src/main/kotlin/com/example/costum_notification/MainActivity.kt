@@ -1,5 +1,7 @@
 package com.example.costum_notification
 
+import android.app.ActivityManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -29,15 +31,31 @@ class MainActivity: FlutterActivity() {
             val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
             startActivityForResult(intent, REQUEST_CODE_OVERLAY_PERMISSION)
         } else {
-            startService(Intent(this, CustomNotificationService::class.java))
+            if (!isServiceRunning(CustomNotificationService::class.java)) {
+                try {
+                    startService(Intent(this, CustomNotificationService::class.java))
+                } catch (e: Exception) {
+                    // Handle exception (e.g., log it)
+                }
+            }
         }
+    }
+
+    private fun isServiceRunning(serviceClass: Class<*>): Boolean {
+        val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        for (service in manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                return true
+            }
+        }
+        return false
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CODE_OVERLAY_PERMISSION) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Settings.canDrawOverlays(this)) {
-                startService(Intent(this, CustomNotificationService::class.java))
+                showCustomNotification()
             }
         }
     }
