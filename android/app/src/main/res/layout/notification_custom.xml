@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:background="@drawable/notification_bg"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/notification_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="أستغفر الله"
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:layout_centerInParent="true"
+        android:padding="8dp"
+        android:background="@drawable/notification_rounded_bg"/>
+
+</RelativeLayout>
