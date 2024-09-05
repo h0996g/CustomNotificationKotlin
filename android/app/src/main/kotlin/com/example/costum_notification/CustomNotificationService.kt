@@ -8,8 +8,8 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
+import android.widget.TextView
 import com.example.costum_notification.R
-
 
 class CustomNotificationService : Service() {
     private lateinit var windowManager: WindowManager
@@ -21,11 +21,12 @@ class CustomNotificationService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        showNotification()
+        val content = intent?.getStringExtra("content") ?: "Custom Notification"
+        showNotification(content)
         return START_STICKY
     }
 
-    private fun showNotification() {
+    private fun showNotification(content: String) {
         if (notificationView != null) {
             // Notification already showing, don't create a new one
             return
@@ -33,6 +34,8 @@ class CustomNotificationService : Service() {
 
         val inflater = getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
         notificationView = inflater.inflate(R.layout.custom_notification_layout, null)
+
+        notificationView?.findViewById<TextView>(R.id.notification_text)?.text = content
 
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -77,5 +80,3 @@ class CustomNotificationService : Service() {
         removeNotification()
     }
 }
-
-

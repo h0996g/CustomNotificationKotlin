@@ -28,9 +28,10 @@ class _MyHomePageState extends State<MyHomePage> {
   static const platform =
       MethodChannel('com.example.costum_notification/custom_notification');
 
-  Future<void> _showCustomNotification() async {
+  Future<void> _showCustomNotification(String content) async {
     try {
-      await platform.invokeMethod('showCustomNotification');
+      await platform
+          .invokeMethod('showCustomNotification', {'content': content});
     } on PlatformException catch (e) {
       print("Failed to show notification: '${e.message}'.");
     }
@@ -44,7 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Center(
         child: ElevatedButton(
-          onPressed: _showCustomNotification,
+          onPressed: () => _showCustomNotification("Your custom message here"),
           child: const Text('Show Custom Notification'),
         ),
       ),

@@ -18,7 +18,8 @@ class MainActivity: FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             if (call.method == "showCustomNotification") {
-                showCustomNotification()
+                val content = call.argument<String>("content") ?: "Custom Notification"
+                showCustomNotification(content)
                 result.success(null)
             } else {
                 result.notImplemented()
@@ -26,14 +27,16 @@ class MainActivity: FlutterActivity() {
         }
     }
 
-    private fun showCustomNotification() {
+    private fun showCustomNotification(content: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
             val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
             startActivityForResult(intent, REQUEST_CODE_OVERLAY_PERMISSION)
         } else {
             if (!isServiceRunning(CustomNotificationService::class.java)) {
                 try {
-                    startService(Intent(this, CustomNotificationService::class.java))
+                    val intent = Intent(this, CustomNotificationService::class.java)
+                    intent.putExtra("content", content)
+                    startService(intent)
                 } catch (e: Exception) {
                     // Handle exception (e.g., log it)
                 }
@@ -55,7 +58,7 @@ class MainActivity: FlutterActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CODE_OVERLAY_PERMISSION) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Settings.canDrawOverlays(this)) {
-                showCustomNotification()
+                showCustomNotification("Custom Notification")
             }
         }
     }
