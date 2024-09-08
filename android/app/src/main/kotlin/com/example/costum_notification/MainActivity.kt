@@ -15,9 +15,8 @@ class MainActivity: FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
-            if (call.method == "showCustomNotification") {
-                val content = call.argument<String>("content") ?: "Custom Notification"
-                showCustomNotification(content)
+            if (call.method == "startCustomNotificationService") {
+                startCustomNotificationService()
                 result.success(null)
             } else {
                 result.notImplemented()
@@ -25,22 +24,17 @@ class MainActivity: FlutterActivity() {
         }
     }
 
-    private fun showCustomNotification(content: String) {
+    private fun startCustomNotificationService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
             val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
             startActivityForResult(intent, REQUEST_CODE_OVERLAY_PERMISSION)
         } else {
-            startForegroundService(content)
-        }
-    }
-
-    private fun startForegroundService(content: String) {
-        val intent = Intent(this, CustomNotificationService::class.java)
-        intent.putExtra("content", content)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
+            val serviceIntent = Intent(this, CustomNotificationService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent)
+            } else {
+                startService(serviceIntent)
+            }
         }
     }
 
@@ -48,7 +42,7 @@ class MainActivity: FlutterActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CODE_OVERLAY_PERMISSION) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Settings.canDrawOverlays(this)) {
-                showCustomNotification("Custom Notification")
+                startCustomNotificationService()
             }
         }
     }

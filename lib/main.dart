@@ -20,7 +20,6 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _MyHomePageState createState() => _MyHomePageState();
 }
 
@@ -28,12 +27,17 @@ class _MyHomePageState extends State<MyHomePage> {
   static const platform =
       MethodChannel('com.example.costum_notification/custom_notification');
 
-  Future<void> _showCustomNotification(String content) async {
+  @override
+  void initState() {
+    super.initState();
+    _startCustomNotificationService();
+  }
+
+  Future<void> _startCustomNotificationService() async {
     try {
-      await platform
-          .invokeMethod('showCustomNotification', {'content': content});
+      await platform.invokeMethod('startCustomNotificationService');
     } on PlatformException catch (e) {
-      print("Failed to show notification: '${e.message}'.");
+      print("Failed to start custom notification service: '${e.message}'.");
     }
   }
 
@@ -43,11 +47,8 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: const Text('Custom Notification Demo'),
       ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () => _showCustomNotification("Your custom message here"),
-          child: const Text('Show Custom Notification'),
-        ),
+      body: const Center(
+        child: Text('Custom notifications will appear every 1 minutes.'),
       ),
     );
   }

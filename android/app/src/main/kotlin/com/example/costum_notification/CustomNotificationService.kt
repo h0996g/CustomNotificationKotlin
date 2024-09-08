@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -12,14 +13,29 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
 import androidx.core.app.NotificationCompat
-import com.example.costum_notification.R
-
+import java.util.*
 
 class CustomNotificationService : Service() {
     private lateinit var windowManager: WindowManager
     private var notificationView: View? = null
     private val CHANNEL_ID = "CustomNotificationChannel"
     private val NOTIFICATION_ID = 1
+    private val handler = Handler()
+    private lateinit var runnable: Runnable
+
+    private val adkar = listOf(
+        "اللَّهُمَّ إنِّي أَسْأَلُكَ الهُدَى وَالتُّقَى، وَالْعَفَافَ وَالْغِنَى",
+        "رَبِّ إِنِّي أَعُوذُ بِكَ أَنْ أَسْأَلَكَ مَا لَيْسَ لِي بِهِ عِلْمٌ ۖ وَإِلَّا تَغْفِرْ لِي وَتَرْحَمْنِي أَكُن مِّنَ الْخَاسِرِينَ",
+        "رَبَّنَا أَتْمِمْ لَنَا نُورَنَا وَاغْفِرْ لَنَا ۖ إِنَّكَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ",
+        "رَّبِّ أَنزِلْنِي مُنزَلًا مُّبَارَكًا وَأَنتَ خَيْرُ الْمُنزِلِينَ",
+        "اللَّهمَّ إنِّي أسألُك أنِّي أَشهَدُ أنَّك أنت اللهُ، لا إلهَ إلَّا أنت، الأحدُ الصمدُ، الذي لم يَلِدْ ولم يولَدْ، ولم يكُنْ له كُفوًا أحدٌ",
+        "اللَّهُمَّ إنِّي أعُوذُ بكَ مِنَ الهَمِّ والحَزَنِ، والعَجْزِ والكَسَلِ، والبُخْلِ، والجُبْنِ، وضَلَعِ الدَّيْنِ، وغَلَبَةِ الرِّجالِ",
+        "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",
+        "لَّا إِلَٰهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ",
+        "رَّبِّ زِدْنِي عِلْمًا",
+        "اللَّهمَّ إنِّي أسألُك من خيرِ ما أُمِرَتْ بِه وأعوذُ بِك من شرِّ ما أُمِرَت بِه",
+        "اللهمَّ إني أسألُك من كل خيرٍ خزائنُه بيدِك، وأعوذُ بك من كل شرٍّ خزائنُه بيدِك"
+    )
 
     override fun onCreate() {
         super.onCreate()
@@ -28,10 +44,20 @@ class CustomNotificationService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val content = intent?.getStringExtra("content") ?: "Custom Notification"
-        startForeground(NOTIFICATION_ID, createNotification(content))
-        showNotification(content)
+        startForeground(NOTIFICATION_ID, createNotification("Custom Notification Service Running"))
+        startPeriodicNotifications()
         return START_STICKY
+    }
+
+    private fun startPeriodicNotifications() {
+        runnable = object : Runnable {
+            override fun run() {
+                val randomAdkar = adkar.random()
+                showNotification(randomAdkar)
+                handler.postDelayed(this, 60 * 1000) // Run every 1 minute
+            }
+        }
+        handler.post(runnable) // Start the periodic notifications
     }
 
     private fun createNotificationChannel() {
@@ -62,7 +88,8 @@ class CustomNotificationService : Service() {
 
     private fun showNotification(content: String) {
         if (notificationView != null) {
-            // Notification already showing, don't create a new one
+            // Notification already showing, update the content
+            notificationView?.findViewById<TextView>(R.id.notification_text)?.text = content
             return
         }
 
@@ -104,14 +131,14 @@ class CustomNotificationService : Service() {
             }
             notificationView = null
         }
-        stopForeground(true)
-        stopSelf()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
         super.onDestroy()
+        handler.removeCallbacks(runnable) // Stop the handler
         removeNotification()
+        stopForeground(true)
     }
 }
